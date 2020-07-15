@@ -1,0 +1,187 @@
+---
+title: "Econometrics Assignment 4"
+author: "Chase Bookin"
+date: "July 14, 2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(tidycensus)
+library(ggthemes)
+library(ggplot2)
+library(janitor)
+library(dplyr)
+library(gt)
+library(readxl)
+library(sf)
+library(scales)
+library(magrittr)
+library(haven)
+library(infer)
+library(Lahman)
+library(xml2)
+library(rvest)
+library(devtools)
+library(broom)
+library(retrosheet)
+library(skimr)
+library(knitr)
+library(tinytex)
+library(lubridate)
+library(pander)
+```
+
+**1. **  
+  
+**A) **
+```{r}
+x <- 36.77097
+null <- 0
+p <- 0.048
+p_div_2 <- p / 2
+t <- 1.98
+# t is positive because we are testing the coefficient of 36.77 against the
+# hypothesis that it is zero.
+
+robust_se <- (x - null) / t
+
+```
+  
+To find the t-statistic and Robust Standard Error of the size coefficient, we
+begin with the p-value provided by Stata. By dividng the p-value by 2 and using
+a z-score table to match the new CDF value of 0.024, we arrive at the
+t-statistic of 1.98. We know it is positive because the coefficient for size is
+positive and being compared to the null hypothesis that the size coefficient is
+equal to zero. Next, we plug in what we have to the t-stat formula. Dividing the
+size coefficient of 37.77097 by the t value of 1.98 yields a Robust Standard
+Error of 18.57. In summary, the t value is found to be 1.98 and the Robust
+Standard Error is 18.57.
+
+**B) **  
+
+The slope coefficient on size decreased from the first regression to the second
+regression because we extracted the effect of additional bathrooms on price, and
+the number of bathrooms in a home is correlated to the size of the home.
+Essentially, the first regression was overestimating the effect of home size on
+price through omitted variable bias. Larger homes tend to have more bathrooms,
+and more bathrooms make homes worth more. By omitting bathrooms in the first
+regression, its effect was being grouped into the size of the house, yielding
+the initial overestimate of the first regression and subsequent drop in the size
+coefficient in the multivariate regression.  
+  
+**2. **  
+  
+**B) **  
+
+```{r, echo=FALSE}
+crime2 <- read_xlsx("crime.xlsx") %>% 
+  rename("crime_rate" = crmrte,
+         "arrest_prob" = prbarr,
+         "convict_prob" = prbconv,
+         "prison_prob" = prbpris,
+         "mean_sentence" = avgsen,
+         "police_per_cap" = polpc,
+         "tax_per_cap" = taxpc,
+         "minority_percent" = pctmin80,
+         "young_male_percent" = pctymle,
+         "wage_construction" = wcon,
+         "wage_tuc" = wtuc,
+         "wage_trd" = wtrd,
+         "wage_fir" = wfir,
+         "wage_ser" = wser,
+         "wage_mfg" = wmfg,
+         "wage_fed" = wfed,
+         "wage_sta" = wsta,
+         "wage_loc" = wloc) %>% 
+  mutate(arrest_prob = ifelse(arrest_prob > 100, NA, arrest_prob),
+         convict_prob = ifelse(convict_prob > 100, NA, convict_prob))
+
+crime2 %>% 
+  skim_without_charts()
+```
+
+COLE COMMENT ABOVE
+COLE COMMENT ABOVE
+COLE COMMENT ABOVE
+  
+  
+**C) **  
+```{r, echo=FALSE}
+  
+mean_crime <- mean(crime2$crime_rate)
+
+crime2 %>%
+  ggplot(aes(x = crime_rate)) +
+  geom_histogram(bins = 50, color = "black", fill = "dodgerblue3") +
+  theme_economist() +
+  scale_x_continuous(breaks = c(0, .025, .05, .075, .1, .125)) +
+  scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14)) +
+  labs(
+    title = "Distribution of Crime Rates",
+    subtitle = "Using data from North Carolina counties in 1987",
+    x = "Crime Rate",
+    y = "Frequency"
+  ) +
+  geom_vline(xintercept = 0.0335, linetype = "longdash", color = "black") +
+  annotate("text", x = .05, y = 9, label = "Mean Crime Rate: 0.0335")
+```
+COLE COMMENT
+COLE COMMENT
+COLE COMMENT
+
+```{r, echo=FALSE, warning=FALSE}
+mean_arrest <- mean(crime2$arrest_prob)
+
+crime2 %>%
+  filter(!is.na(arrest_prob)) %>% 
+  ggplot(aes(x = arrest_prob)) +
+  geom_histogram(bins = 40, color = "black", fill = "dodgerblue3") +
+  theme_economist() +
+  scale_x_continuous(limits = c(0,100)) +
+  scale_y_continuous(breaks = c(0, 3, 6, 9, 12)) +
+  labs(
+    title = "Distribution of Arrest Percentages for Offenses",
+    subtitle = "Using data from North Carolina counties in 1987",
+    x = "Arrest Percentage",
+    y = "Frequency"
+  ) +
+  geom_vline(xintercept = 29.52375, linetype = "longdash", color = "black") +
+  annotate("text", x = 49, y = 11.5, label = "Mean Arrest Percent: 29.52%")
+```
+
+COLE COMMENT
+COLE COMMENT
+COLE COMMENT  
+
+**D) **
+```{r, echo=FALSE}
+
+variables <- c("crime_rate", "arrest_prob", "convict_prob", "prison_prob", "mean_sentence", "police_per_cap")
+
+corr <- crime2 %>% 
+  select(crime_rate, arrest_prob, convict_prob, prison_prob, mean_sentence, police_per_cap) %>% 
+  filter(!is.na(arrest_prob) & !is.na(convict_prob)) %>% 
+  cor() %>% 
+  round(2)
+
+correlation_table <- as_tibble(corr) %>% 
+  mutate(' ' = variables) %>% 
+  select(' ', everything())
+
+
+gt(data = correlation_table) %>% 
+  tab_header(
+    title = "Correlation Matrix",
+    subtitle = "Correlations of crime rate and possible explanatory variables"
+  ) %>% 
+  tab_source_note(
+    source_note = "Data collected from North Carolina Counties in 1987"
+  )
+
+```
+
+
