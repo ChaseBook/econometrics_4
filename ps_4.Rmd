@@ -96,11 +96,29 @@ crime2 <- read_xlsx("crime.xlsx") %>%
          "wage_mfg" = wmfg,
          "wage_fed" = wfed,
          "wage_sta" = wsta,
-         "wage_loc" = wloc) %>% 
-  mutate(arrest_prob = ifelse(arrest_prob > 100, NA, arrest_prob),
-         convict_prob = ifelse(convict_prob > 100, NA, convict_prob))
+         "wage_loc" = wloc)
 
-crime2 %>% 
+crime_summary <- read_xlsx("crime.xlsx") %>% 
+  rename("Crime Rate" = crmrte,
+         "Arrest Probability" = prbarr,
+         "Conviction Prob" = prbconv,
+         "Prison Prob" = prbpris,
+         "Average Sentence" = avgsen,
+         "Police per Capita" = polpc,
+         "Tax Revenue per Cap" = taxpc,
+         "Percent Minority" = pctmin80,
+         "Percent Young Male" = pctymle,
+         "Wage: Construction" = wcon,
+         "Wage: Tran & Util" = wtuc,
+         "Wage: Trade" = wtrd,
+         "Wage: Finance" = wfir,
+         "Wage: Service" = wser,
+         "Wage: Manufacturing" = wmfg,
+         "Wage: Federal Gov" = wfed,
+         "Wage: State Gov" = wsta,
+         "Wage: Local Gov" = wloc)
+
+crime_summary %>% 
   skim_without_charts()
 ```
 
@@ -141,7 +159,7 @@ crime2 %>%
   ggplot(aes(x = arrest_prob)) +
   geom_histogram(bins = 40, color = "black", fill = "dodgerblue3") +
   theme_economist() +
-  scale_x_continuous(limits = c(0,100)) +
+  scale_x_continuous(limits = c(0,125), breaks = c(0, 25, 50, 75, 100, 125)) +
   scale_y_continuous(breaks = c(0, 3, 6, 9, 12)) +
   labs(
     title = "Distribution of Arrest Percentages for Offenses",
@@ -150,7 +168,7 @@ crime2 %>%
     y = "Frequency"
   ) +
   geom_vline(xintercept = 29.52375, linetype = "longdash", color = "black") +
-  annotate("text", x = 49, y = 11.5, label = "Mean Arrest Percent: 29.52%")
+  annotate("text", x = 54, y = 11.5, label = "Mean Arrest Percent: 29.52%")
 ```
 
 COLE COMMENT
