@@ -33,6 +33,9 @@ library(knitr)
 library(tinytex)
 library(lubridate)
 library(pander)
+library(foreign)
+library(lmtest)
+library(sandwich)
 ```
 
 **1. **  
@@ -202,4 +205,42 @@ gt(data = correlation_table) %>%
 
 ```
 
+**E) **
+
+```{r, echo=FALSE}
+model1 <- lm(crime_rate ~ arrest_prob, data = crime2)
+
+model1_tidy <- model1 %>%
+  tidy()
+
+model1_robust <- coeftest(model1, vcov = vcovHC(model1, type="HC1")) %>% 
+  tidy()
+
+gt <- gt(data=as_tibble(model1_robust)) %>% 
+  tab_header(
+    title = "Regression Output of Crime Rate on Probability of Arrest",
+    subtitle = "Using HC1 Robust Standard Errors"
+  ) %>% 
+  tab_source_note(
+    source_note = "Data collected from North Carolina Counties in 1987"
+  )
+
+model1_robust
+
+```
+  
+The regression coefficient of the arrest probability is -0.000542. This means that if arrest probability increases by one percentage point, we expect the crimes committed per person to decrease by 0.000542.
+  
+    
+**F) **
+
+```{r}
+estimate <- -0.0005422804
+null <- 0
+se <- 0.0001278931
+
+t <- (estimate - null) / se
+```
+  
+From the above calculations as well as the regression output, we find the absolute value of the t-statistic of the regression coefficient for arrest probability to be 4.24. Because the absolute value of the t-statistic is greater than the critical value of 1.96 at a 5% significance level, we reject the null hypothesis that the coefficient for arrest probability is equal to zero.
 
