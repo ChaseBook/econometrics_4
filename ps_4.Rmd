@@ -76,6 +76,7 @@ regression, its effect was being grouped into the size of the house, yielding
 the initial overestimate of the first regression and subsequent drop in the size
 coefficient in the multivariate regression.  
   
+
 **2. **  
   
 **B) **  
@@ -231,6 +232,23 @@ model1_robust
   
 The regression coefficient of the arrest probability is -0.000542. This means that if arrest probability increases by one percentage point, we expect the crimes committed per person to decrease by 0.000542.
   
+ 
+```{r, include=FALSE}
+zillow <- .01/.0005422
+intercept <- model1_robust %>% 
+  filter(term == '(Intercept)') %>% 
+  pull(estimate)
+
+b1 <- model1_robust %>% 
+  filter(term == 'arrest_prob') %>% 
+  pull(estimate)
+
+# y = intercept + b1 * arrest_prob
+
+((.02 - intercept) / b1) - ((.03 - intercept) / b1)
+
+```
+ 
     
 **F) **
 
@@ -242,5 +260,73 @@ se <- 0.0001278931
 t <- (estimate - null) / se
 ```
   
-From the above calculations as well as the regression output, we find the absolute value of the t-statistic of the regression coefficient for arrest probability to be 4.24. Because the absolute value of the t-statistic is greater than the critical value of 1.96 at a 5% significance level, we reject the null hypothesis that the coefficient for arrest probability is equal to zero.
+From the above calculations as well as the regression output, we find the
+absolute value of the t-statistic of the regression coefficient for arrest
+probability to be 4.24. Because the absolute value of the t-statistic is greater
+than the critical value of 1.96 at a 5% significance level, we reject the null
+hypothesis that the coefficient for arrest probability is equal to zero.
+  
+However, from a practical significance perspective, assuming a population of one
+million people, an increase of one percent in arrest probability would only drop
+the total amount of crimes committed by 542 based on the arrest probability
+coefficient. Most counties in North Carolina do not have one million people,
+meaning that total crime reduction would be even smaller in these counties.
+  
+Additionally, the 50th percentile for crime rate is 0.03. Based on the
+regression, in order to move from the 50th percentile to the 25th percentile
+crime rate of 0.02, it is estimated that a county would need to increase its
+arrest probability by roughly 18.44%, a major increase. This exemplifies the lack of
+practical significance of the arrest probability coefficient, despite its
+statistical significance.  
+  
+**G) **
+
+```{r}
+intercept <- model1_robust %>% 
+  filter(term == '(Intercept)') %>% 
+  pull(estimate)
+
+b1 <- model1_robust %>% 
+  filter(term == 'arrest_prob') %>% 
+  pull(estimate)
+
+# y = intercept + b1 * arrest_prob
+
+est_arrest_03 <- (.03 - intercept) / b1 # approx 35.996
+
+est_arrest_02 <- (.02 - intercept) / b1 # approx 54.437
+
+est_arrest_02 - est_arrest_03
+```
+  
+Assuming a county in North Carolina wants to drop from 5 crimes per 100 citizens to 4 crimes per 100 citizens, the estimated increase in arrest probability necessary would be roughly 18.44%. This is the same as the example explained in part F because in each instance the Y variable is being dropped by 0.01 and we are using a linear regression, meaning the slope is the same at all points. Given this, we took the expected arrest probabilities for crime rates of 0.03 and 0.02 and found the difference between them to be 18.44%. This estimated increase in arrest probability required is equal to the change required to drop from 0.05 to 0.04, leaving us with the answer of 18.44%.  
+  
+**H) **
+
+```{r, echo=FALSE}
+
+model1_fitted <- model1 %>%
+  augment(type.predict = "response", data = crime2) %>% 
+  select(county, crime_rate, arrest_prob, .fitted, .resid)
+
+model1_fitted %>% 
+  ggplot(aes(x = arrest_prob, y = .resid)) +
+  geom_point(color = "dodgerblue3") +
+  theme_economist() +
+  scale_x_continuous(limits = c(0,125), breaks = c(0, 25, 50, 75, 100, 125)) +
+  scale_y_continuous(limits = c(-.04, .06), breaks = c(-.04, -.02, 0, .02, .04, .06)) +
+  labs(
+    title = "Arrest Probability vs Residuals",
+    x = "Arrest Probability",
+    y = "Residuals",
+    caption = "Data collected from North Carolina Counties in 1987"
+  )
+
+```
+  
+Based on this graph, it is clear that the heteroskedasticity-robust estimator for standard error is justified. The residuals have much greater spread for counties with lower arrest probabilities compared to counties with greater arrest probabilities. Because the residuals are not uniformly distributed along the x axis, we need to use the heteroskedasticity-robust standard error.  
+
+**I) **
+
+
 
