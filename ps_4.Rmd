@@ -371,10 +371,46 @@ crime2 %>%
   filter(!is.na(arrest_prob)) %>% 
   select(arrest_prob, density) %>% 
   cor()
+
+crime2 %>% 
+  filter(!is.na(arrest_prob)) %>% 
+  select(urban, density) %>% 
+  cor()
 ```
 
 **J) **
-The arrest probability coefficient in model 1 is -0.000542, meaning that if arrest probability increases by one percentage point, it is expected that the crimes committed per person to decrease by 0.000542. In model 2, the arrest probability coefficient is -0.000266, less negative than in model 1. The density coefficient is 0.00832 meaning that as you increase the number of people per square mile by 1000, we expect an increase in crimes committed per person of 0.00832. As stated, the coefficient on arrest probability is less negative in model 2 than in model 1, and we have introduced a new explanatory variable in population density. The first model overestimates the effect of arrest probability on crime rate due to omitted variable bias from not controlling for population density. The correlation between arrest probability and density is -0.3,
+The arrest probability coefficient in model 1 is -0.000542, meaning that if
+arrest probability increases by one percentage point, it is expected that the
+crimes committed per person to decrease by 0.000542. In model 2, the arrest
+probability coefficient is -0.000266, less negative than in model 1. The density
+coefficient is 0.00832 meaning that as you increase the number of people per
+square mile by 1000, we expect an increase in crimes committed per person of
+0.00832.
+  
+As stated, the coefficient on arrest probability is less negative in model 2
+than in model 1, and we have introduced a new explanatory variable in population
+density. The first model overestimates the effect of arrest probability on crime
+rate due to omitted variable bias from not controlling for population density.
+  
+The correlation between arrest probability and density is -0.3. In the first
+model, the regressor is correlated with the error tirm, and as arrest
+probability increases, crime rate falls. Higher arrest probability is correlated
+with lower population density, which also decreases the crime rate. Therefore,
+the initial bias of model 1 is positive because it fails to take into account
+the decrease in crime tied to lower population density as arrest probability
+increases.
+
+In order to accurately draw conclusions regarding the causality of the
+explanatory variables, we need to remove OVB by controlling for all factors
+correlated with the regressors that may impact the dependent variable. Model 2
+is better than model 1 for identifying the causal effect of arrest probability
+on crime rate because it controls for the effect of population density which is
+not the case in model 1.
+  
+
+**K) **
+
+Selecting between models 2,3, and 4, I would select model 2. Comparing model 2 and model 4, model 2 has both a higher r-squared value and lower residual standard error than model 4. Model 2 is also preferable to model 3 due to multicollinearity present in model 3. The density and urban variables have a correlation of 0.82, an extremely high value reflective of the high concentration of people in urban settings. Although model 3 has a higher r-squared value than model 2, the adjusted r-squared value is higher in model 2. This is because adding the urban variable to the regression did not increase the r-squared value by a significant amount. Additionally, in model 3, urban is not statistically significant at the 10% level, yet in model 4 it is significant at the 1% level because the density effect is being grouped in with the urban effect. Model 2 is the best model of the three.
   
   
   
