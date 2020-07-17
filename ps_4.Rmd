@@ -1,9 +1,10 @@
 ---
 title: "Econometrics Assignment 4"
-author: "Chase Bookin"
+author: "Chase Bookin & Cole Price"
 date: "July 14, 2020"
 output:
   pdf_document: default
+  word_document: default
   html_document: default
 ---
 
@@ -36,6 +37,8 @@ library(pander)
 library(foreign)
 library(lmtest)
 library(sandwich)
+library(stargazer)
+library(huxtable)
 ```
 
 **1. **  
@@ -328,5 +331,54 @@ Based on this graph, it is clear that the heteroskedasticity-robust estimator fo
 
 **I) **
 
+```{r, echo=FALSE}
+# model 1
+model_i1 <- lm(crime_rate ~ arrest_prob, data = crime2)
+
+tidy1 <- model_i1 %>% 
+  tidy()
+
+#model_i1_robust <- coeftest(model_i1, vcov = vcovHC(model_i1, type="HC1")) %>% 
+ # tidy()
+
+# model 2
+
+model_i2 <- lm(crime_rate ~ arrest_prob + density, data = crime2)
+
+tidy2 <- model_i2 %>% 
+  tidy()
+# model 3
+
+model_i3 <- lm(crime_rate ~ arrest_prob + density + urban, data = crime2)
+
+tidy3 <- model_i3 %>% 
+  tidy()
+# model 4
+
+model_i4 <- lm(crime_rate ~ arrest_prob + urban, data = crime2)
+
+tidy4 <- model_i4 %>% 
+  tidy()
+
+stargazer(model_i1, model_i2, model_i3, model_i4, type = "text")
 
 
+
+```
+  
+```{r}
+crime2 %>% 
+  filter(!is.na(arrest_prob)) %>% 
+  select(arrest_prob, density) %>% 
+  cor()
+```
+
+**J) **
+The arrest probability coefficient in model 1 is -0.000542, meaning that if arrest probability increases by one percentage point, it is expected that the crimes committed per person to decrease by 0.000542. In model 2, the arrest probability coefficient is -0.000266, less negative than in model 1. The density coefficient is 0.00832 meaning that as you increase the number of people per square mile by 1000, we expect an increase in crimes committed per person of 0.00832. As stated, the coefficient on arrest probability is less negative in model 2 than in model 1, and we have introduced a new explanatory variable in population density. The first model overestimates the effect of arrest probability on crime rate due to omitted variable bias from not controlling for population density. The correlation between arrest probability and density is -0.3,
+  
+  
+  
+  
+  
+  
+  
